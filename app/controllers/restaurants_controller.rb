@@ -1,4 +1,5 @@
 class RestaurantsController < ApplicationController
+  before_action :set_restaurant, only: %i[ show edit update destroy ]
 
   def index
     @restaurants = Restaurant.all
@@ -8,36 +9,44 @@ class RestaurantsController < ApplicationController
     @restaurant = Restaurant.new
   end
 
+  def show
+  end
+
   def create
-    @restaurant = Restaurant.new(params[:restaurant])
-    @restaurant.save
-    redirect_to restaurant_path(@restaurant)
+    @restaurant = Restaurant.new(restaurant_params)
+
+    if @restaurant.save
+      redirect_to restaurant_path(@restaurant), notice: "Restaurante was added successfully"
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def edit
-    @restaurant = Restaurant.find(params[:id])
   end
 
   def update
-    @restaurant = Restaurant.find(params[:id])
-    @restaurant.update(restaurant_params)
-    redirect_to restaurant_path(@restaurant)
+    if @restaurant.update(restaurant_params)
+      redirect_to restaurant_path(@restaurant)
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def destroy
-    @restaurant = Restaurant.find(params[:id])
     @restaurant.destroy
     redirect_to restaurant_path, status: :see_other
   end
 
 
   def category
-    @categories = ["chinese", "italian", "japanese", "french", "belgian"]
+    categories = ["chinese", "italian", "japanese", "french", "belgian"]
     if params[:category]
-      @categories = @categories.select do |category|
+      categories.each do |category|
         category == params[:category]
       end
-      end
+    else
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -47,6 +56,8 @@ class RestaurantsController < ApplicationController
     params.require(:restaurant).permit(:name, :address, :category)
   end
 
-
+  def set_restaurant
+    @restaurant = Restaurant.find(params[:id])
+  end
 
 end
